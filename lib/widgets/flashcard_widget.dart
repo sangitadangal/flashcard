@@ -15,6 +15,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  int? _currentQuestionId;
 
   @override
   void initState() {
@@ -59,10 +60,13 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
           );
         }
 
-        // Reset animation when showing front side (question changes or isShowingAnswer is false)
-        if (!provider.isShowingAnswer && _controller.value > 0) {
+        // Reset animation when question changes (navigation to different question)
+        if (_currentQuestionId != question.id) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _controller.reset();
+            if (mounted) {
+              _controller.reset();
+              _currentQuestionId = question.id;
+            }
           });
         }
 
