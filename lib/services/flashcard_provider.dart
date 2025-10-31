@@ -1,0 +1,239 @@
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../models/leetcode_question.dart';
+import '../models/sample_questions.dart';
+
+class FlashcardProvider extends ChangeNotifier {
+  List<LeetCodeQuestion> _allQuestions = [];
+  List<LeetCodeQuestion> _filteredQuestions = [];
+  int _currentIndex = 0;
+  bool _isShowingAnswer = false;
+  Set<Difficulty> _selectedDifficulties = {};
+  Set<String> _selectedCategories = {};
+
+  FlashcardProvider() {
+    _loadQuestions();
+  }
+
+  // Getters
+  List<LeetCodeQuestion> get allQuestions => _allQuestions;
+  List<LeetCodeQuestion> get filteredQuestions => _filteredQuestions;
+  int get currentIndex => _currentIndex;
+  bool get isShowingAnswer => _isShowingAnswer;
+  Set<Difficulty> get selectedDifficulties => _selectedDifficulties;
+  Set<String> get selectedCategories => _selectedCategories;
+
+  LeetCodeQuestion? get currentQuestion {
+    if (_currentIndex < _filteredQuestions.length) {
+      return _filteredQuestions[_currentIndex];
+    }
+    return null;
+  }
+
+  bool get isFiltered =>
+      _selectedDifficulties.isNotEmpty || _selectedCategories.isNotEmpty;
+
+  int get totalCount => _allQuestions.length;
+  int get filteredCount => _filteredQuestions.length;
+  int get masteredCount =>
+      _allQuestions.where((q) => q.isMastered).length;
+
+  double get progress {
+    if (_allQuestions.isEmpty) return 0.0;
+    return masteredCount / totalCount;
+  }
+
+  List<String> get allCategories {
+    return _allQuestions.map((q) => q.category).toSet().toList()..sort();
+  }
+
+  // Load questions from storage or use sample data
+  Future<void> _loadQuestions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? questionsJson = prefs.getString('leetcode_questions');
+
+      if (questionsJson != null) {
+        final List<dynamic> decoded = json.decode(questionsJson);
+        _allQuestions = decoded
+            .map((item) => LeetCodeQuestion.fromJson(item))
+            .toList();
+      } else {
+        _allQuestions = List.from(sampleQuestions);
+      }
+
+      _filteredQuestions = List.from(_allQuestions);
+      notifyListeners();
+      await _saveQuestions();
+    } catch (e) {
+      debugPrint('Error loading questions: $e');
+      _allQuestions = List.from(sampleQuestions);
+      _filteredQuestions = List.from(_allQuestions);
+      notifyListeners();
+    }
+  }
+
+  // Save questions to storage
+  Future<void> _saveQuestions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String questionsJson = json.encode(
+        _allQuestions.map((q) => q.toJson()).toList(),
+      );
+      await prefs.setString('leetcode_questions', questionsJson);
+    } catch (e) {
+      debugPrint('Error saving questions: $e');
+    }
+  }
+
+  // Toggle mastered status
+  void toggleMastered() {
+    if (currentQuestion == null) return;
+
+    final questionId = currentQuestion!.id;
+
+    // Update in all questions
+    final allIndex = _allQuestions.indexWhere((q) => q.id == questionId);
+    if (allIndex != -1) {
+      _allQuestions[allIndex] = _allQuestions[allIndex].copyWith(
+        isMastered: !_allQuestions[allIndex].isMastered,
+      );
+    }
+
+    // Update in filtered questions
+    _filteredQuestions[_currentIndex] = _filteredQuestions[_currentIndex].copyWith(
+      isMastered: !_filteredQuestions[_currentIndex].isMastered,
+    );
+
+    notifyListeners();
+    _saveQuestions();
+  }
+
+  // Navigation
+  void nextQuestion() {
+    _isShowingAnswer = false;
+    if (_currentIndex < _filteredQuestions.length - 1) {
+      _currentIndex++;
+    } else {
+      _currentIndex = 0;
+    }
+    notifyListeners();
+  }
+
+  void previousQuestion() {
+    _isShowingAnswer = false;
+    if (_currentIndex > 0) {
+      _currentIndex--;
+    } else {
+      _currentIndex = _filteredQuestions.length - 1;
+    }
+    notifyListeners();
+  }
+
+  void flipCard() {
+    _isShowingAnswer = !_isShowingAnswer;
+    notifyListeners();
+  }
+
+  // Filter methods
+  void toggleDifficulty(Difficulty difficulty) {
+    if (_selectedDifficulties.contains(difficulty)) {
+      _selectedDifficulties.remove(difficulty);
+    } else {
+      _selectedDifficulties.add(difficulty);
+    }
+    _applyFilters();
+  }
+
+  void toggleCategory(String category) {
+    if (_selectedCategories.contains(category)) {
+      _selectedCategories.remove(category);
+    } else {
+      _selectedCategories.add(category);
+    }
+    _applyFilters();
+  }
+
+  void clearFilters() {
+    _selectedDifficulties.clear();
+    _selectedCategories.clear();
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    _filteredQuestions = List.from(_allQuestions);
+
+    // Filter by difficulty
+    if (_selectedDifficulties.isNotEmpty) {
+      _filteredQuestions = _filteredQuestions
+          .where((q) => _selectedDifficulties.contains(q.difficulty))
+          .toList();
+    }
+
+    // Filter by category
+    if (_selectedCategories.isNotEmpty) {
+      _filteredQuestions = _filteredQuestions
+          .where((q) => _selectedCategories.contains(q.category))
+          .toList();
+    }
+
+    // Reset index if out of bounds
+    if (_filteredQuestions.isNotEmpty && _currentIndex >= _filteredQuestions.length) {
+      _currentIndex = 0;
+    } else if (_filteredQuestions.isEmpty) {
+      _currentIndex = 0;
+    }
+
+    _isShowingAnswer = false;
+    notifyListeners();
+  }
+
+  // Reset progress
+  void resetProgress() {
+    for (int i = 0; i < _allQuestions.length; i++) {
+      _allQuestions[i] = _allQuestions[i].copyWith(isMastered: false);
+    }
+    _applyFilters();
+    _saveQuestions();
+  }
+
+  // Get category progress
+  Map<String, Map<String, int>> getCategoryProgress() {
+    final Map<String, Map<String, int>> progress = {};
+
+    for (var question in _allQuestions) {
+      if (!progress.containsKey(question.category)) {
+        progress[question.category] = {'mastered': 0, 'total': 0};
+      }
+      progress[question.category]!['total'] =
+          (progress[question.category]!['total'] ?? 0) + 1;
+      if (question.isMastered) {
+        progress[question.category]!['mastered'] =
+            (progress[question.category]!['mastered'] ?? 0) + 1;
+      }
+    }
+
+    return progress;
+  }
+
+  // Get difficulty progress
+  Map<Difficulty, Map<String, int>> getDifficultyProgress() {
+    final Map<Difficulty, Map<String, int>> progress = {};
+
+    for (var difficulty in Difficulty.values) {
+      progress[difficulty] = {'mastered': 0, 'total': 0};
+    }
+
+    for (var question in _allQuestions) {
+      progress[question.difficulty]!['total'] =
+          (progress[question.difficulty]!['total'] ?? 0) + 1;
+      if (question.isMastered) {
+        progress[question.difficulty]!['mastered'] =
+            (progress[question.difficulty]!['mastered'] ?? 0) + 1;
+      }
+    }
+
+    return progress;
+  }
+}

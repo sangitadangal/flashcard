@@ -1,0 +1,40 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect width="1024" height="1024" rx="180" fill="url(#bgGradient)"/>
+
+  <!-- White flashcard with shadow -->
+  <g filter="url(#shadow)">
+    <rect x="200" y="250" width="624" height="524" rx="40" fill="white"/>
+  </g>
+
+  <!-- Code brackets and text -->
+  <g fill="#1976D2">
+    <!-- Left bracket { -->
+    <path d="M 350 400 Q 330 400 330 420 L 330 480 Q 330 500 310 500 Q 330 500 330 520 L 330 580 Q 330 600 350 600"
+          stroke="#1976D2" stroke-width="24" fill="none" stroke-linecap="round"/>
+
+    <!-- Right bracket } -->
+    <path d="M 674 400 Q 694 400 694 420 L 694 480 Q 694 500 714 500 Q 694 500 694 520 L 694 580 Q 694 600 674 600"
+          stroke="#1976D2" stroke-width="24" fill="none" stroke-linecap="round"/>
+
+    <!-- Center code text -->
+    <text x="512" y="520" font-family="Courier, monospace" font-size="72" font-weight="bold"
+          text-anchor="middle" fill="#1976D2">CODE</text>
+  </g>
+
+  <!-- Small decorative dots (representing flashcard stack) -->
+  <circle cx="240" cy="730" r="12" fill="white" opacity="0.6"/>
+  <circle cx="280" cy="740" r="12" fill="white" opacity="0.6"/>
+  <circle cx="320" cy="745" r="12" fill="white" opacity="0.6"/>
+</svg>
