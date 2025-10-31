@@ -3,8 +3,32 @@ import '../models/flashcard_set.dart';
 import '../models/available_sets.dart';
 import 'flashcard_screen.dart';
 
-class SetsHomeScreen extends StatelessWidget {
+class SetsHomeScreen extends StatefulWidget {
   const SetsHomeScreen({super.key});
+
+  @override
+  State<SetsHomeScreen> createState() => _SetsHomeScreenState();
+}
+
+class _SetsHomeScreenState extends State<SetsHomeScreen> {
+  List<FlashcardSet>? _flashcardSets;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSets();
+  }
+
+  Future<void> _loadSets() async {
+    final sets = await getFlashcardSetsWithProgress();
+    if (mounted) {
+      setState(() {
+        _flashcardSets = sets;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,14 +78,16 @@ class SetsHomeScreen extends StatelessWidget {
 
           // Sets list
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: availableFlashcardSets.length,
-              itemBuilder: (context, index) {
-                final set = availableFlashcardSets[index];
-                return _buildSetCard(context, set);
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _flashcardSets?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final set = _flashcardSets![index];
+                      return _buildSetCard(context, set);
+                    },
+                  ),
           ),
 
           // Footer with info
@@ -96,13 +122,15 @@ class SetsHomeScreen extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => FlashcardScreen(flashcardSet: set),
             ),
           );
+          // Reload sets when coming back to refresh progress
+          _loadSets();
         },
         child: Padding(
           padding: const EdgeInsets.all(20),

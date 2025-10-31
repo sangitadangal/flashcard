@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'flashcard_set.dart';
+import 'leetcode_question.dart';
 import 'all_questions.dart';
 
 // Available flashcard sets
@@ -45,5 +48,36 @@ FlashcardSet? getFlashcardSetById(String id) {
     return availableFlashcardSets.firstWhere((set) => set.id == id);
   } catch (e) {
     return null;
+  }
+}
+
+// Load mastered status from storage and apply to all sets
+Future<List<FlashcardSet>> getFlashcardSetsWithProgress() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final String? masteredJson = prefs.getString('mastered_questions');
+
+    if (masteredJson == null) {
+      return availableFlashcardSets;
+    }
+
+    final Map<String, dynamic> masteredMap = json.decode(masteredJson);
+
+    // Update each set with mastered status
+    return availableFlashcardSets.map((set) {
+      final updatedQuestions = set.questions.map((question) {
+        final questionId = question.id.toString();
+        if (masteredMap.containsKey(questionId)) {
+          return question.copyWith(
+            isMastered: masteredMap[questionId] == true,
+          );
+        }
+        return question;
+      }).toList();
+
+      return set.copyWith(questions: updatedQuestions);
+    }).toList();
+  } catch (e) {
+    return availableFlashcardSets;
   }
 }

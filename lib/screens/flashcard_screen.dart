@@ -46,7 +46,10 @@ class _FlashcardScreenContent extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FilterScreen(),
+                          builder: (_) => ChangeNotifierProvider.value(
+                            value: provider,
+                            child: const FilterScreen(),
+                          ),
                         ),
                       );
                     },
@@ -69,15 +72,22 @@ class _FlashcardScreenContent extends StatelessWidget {
             },
           ),
           // Progress button
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            tooltip: 'Progress',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProgressScreen(),
-                ),
+          Consumer<FlashcardProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: const Icon(Icons.bar_chart),
+                tooltip: 'Progress',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChangeNotifierProvider.value(
+                        value: provider,
+                        child: const ProgressScreen(),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),

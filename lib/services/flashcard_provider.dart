@@ -20,7 +20,52 @@ class FlashcardProvider extends ChangeNotifier {
   FlashcardProvider.withQuestions(List<LeetCodeQuestion> questions) {
     _allQuestions = List.from(questions);
     _filteredQuestions = List.from(_allQuestions);
-    notifyListeners();
+    _loadMasteredStatus(); // Load mastered status from storage (async)
+  }
+
+  // Load mastered status from storage and apply to current questions
+  Future<void> _loadMasteredStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? masteredJson = prefs.getString('mastered_questions');
+
+      if (masteredJson != null) {
+        final Map<String, dynamic> masteredMap = json.decode(masteredJson);
+
+        // Update mastered status for current questions
+        for (int i = 0; i < _allQuestions.length; i++) {
+          final questionId = _allQuestions[i].id.toString();
+          if (masteredMap.containsKey(questionId)) {
+            _allQuestions[i] = _allQuestions[i].copyWith(
+              isMastered: masteredMap[questionId] == true,
+            );
+          }
+        }
+
+        // Update filtered questions as well
+        _filteredQuestions = List.from(_allQuestions);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading mastered status: $e');
+    }
+  }
+
+  // Save only the mastered status to storage (lighter weight)
+  Future<void> _saveMasteredStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final Map<String, bool> masteredMap = {};
+
+      for (var question in _allQuestions) {
+        masteredMap[question.id.toString()] = question.isMastered;
+      }
+
+      final String masteredJson = json.encode(masteredMap);
+      await prefs.setString('mastered_questions', masteredJson);
+    } catch (e) {
+      debugPrint('Error saving mastered status: $e');
+    }
   }
 
   // Getters
@@ -32,7 +77,7 @@ class FlashcardProvider extends ChangeNotifier {
   Set<String> get selectedCategories => _selectedCategories;
 
   LeetCodeQuestion? get currentQuestion {
-    if (_currentIndex < _filteredQuestions.length) {
+    if (_filteredQuestions.isNotEmpty && _currentIndex < _filteredQuestions.length) {
       return _filteredQuestions[_currentIndex];
     }
     return null;
@@ -78,6 +123,9 @@ class FlashcardProvider extends ChangeNotifier {
         await prefs.setInt('data_version', currentVersion);
       }
 
+      // Load mastered status
+      await _loadMasteredStatus();
+
       _filteredQuestions = List.from(_allQuestions);
       notifyListeners();
       await _saveQuestions();
@@ -97,6 +145,9 @@ class FlashcardProvider extends ChangeNotifier {
         _allQuestions.map((q) => q.toJson()).toList(),
       );
       await prefs.setString('leetcode_questions', questionsJson);
+
+      // Also save mastered status separately
+      await _saveMasteredStatus();
     } catch (e) {
       debugPrint('Error saving questions: $e');
     }
@@ -117,31 +168,37 @@ class FlashcardProvider extends ChangeNotifier {
     }
 
     // Update in filtered questions
-    _filteredQuestions[_currentIndex] = _filteredQuestions[_currentIndex].copyWith(
-      isMastered: !_filteredQuestions[_currentIndex].isMastered,
-    );
+    if (_currentIndex < _filteredQuestions.length) {
+      _filteredQuestions[_currentIndex] = _filteredQuestions[_currentIndex].copyWith(
+        isMastered: !_filteredQuestions[_currentIndex].isMastered,
+      );
+    }
 
     notifyListeners();
-    _saveQuestions();
+    _saveMasteredStatus(); // Save immediately when toggled
   }
 
   // Navigation
   void nextQuestion() {
     _isShowingAnswer = false;
-    if (_currentIndex < _filteredQuestions.length - 1) {
-      _currentIndex++;
-    } else {
-      _currentIndex = 0;
+    if (_filteredQuestions.isNotEmpty) {
+      if (_currentIndex < _filteredQuestions.length - 1) {
+        _currentIndex++;
+      } else {
+        _currentIndex = 0;
+      }
     }
     notifyListeners();
   }
 
   void previousQuestion() {
     _isShowingAnswer = false;
-    if (_currentIndex > 0) {
-      _currentIndex--;
-    } else {
-      _currentIndex = _filteredQuestions.length - 1;
+    if (_filteredQuestions.isNotEmpty) {
+      if (_currentIndex > 0) {
+        _currentIndex--;
+      } else {
+        _currentIndex = _filteredQuestions.length - 1;
+      }
     }
     notifyListeners();
   }
@@ -210,7 +267,7 @@ class FlashcardProvider extends ChangeNotifier {
       _allQuestions[i] = _allQuestions[i].copyWith(isMastered: false);
     }
     _applyFilters();
-    _saveQuestions();
+    _saveMasteredStatus();
   }
 
   // Get category progress
