@@ -16,6 +16,13 @@ class FlashcardProvider extends ChangeNotifier {
     _loadQuestions();
   }
 
+  // Constructor for pre-loaded questions (for specific sets)
+  FlashcardProvider.withQuestions(List<LeetCodeQuestion> questions) {
+    _allQuestions = List.from(questions);
+    _filteredQuestions = List.from(_allQuestions);
+    notifyListeners();
+  }
+
   // Getters
   List<LeetCodeQuestion> get allQuestions => _allQuestions;
   List<LeetCodeQuestion> get filteredQuestions => _filteredQuestions;
