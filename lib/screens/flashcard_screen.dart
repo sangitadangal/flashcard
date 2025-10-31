@@ -142,6 +142,52 @@ class _FlashcardScreenContent extends StatelessWidget {
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    // Hide Mastered Toggle
+                    GestureDetector(
+                      onTap: () {
+                        provider.toggleHideMastered();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: provider.hideMastered ? Colors.blue : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: provider.hideMastered ? Colors.blue : Colors.grey[400]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              provider.hideMastered ? Icons.visibility_off : Icons.visibility,
+                              size: 16,
+                              color: provider.hideMastered ? Colors.white : Colors.grey[700],
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              provider.hideMastered ? 'Mastered Hidden' : 'Show All',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: provider.hideMastered ? Colors.white : Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            if (provider.hideMastered)
+                              Text(
+                                '(${provider.filteredCount})',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -150,12 +196,68 @@ class _FlashcardScreenContent extends StatelessWidget {
 
           // Flashcard
           Expanded(
-            child: Container(
-              color: Colors.grey[50],
-              padding: const EdgeInsets.all(16),
-              child: const Center(
-                child: FlashcardWidget(),
-              ),
+            child: Consumer<FlashcardProvider>(
+              builder: (context, provider, child) {
+                // Show empty state if no questions available
+                if (provider.filteredCount == 0) {
+                  return Container(
+                    color: Colors.grey[50],
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.celebration,
+                            size: 80,
+                            color: Colors.amber,
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'All Questions Mastered!',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Great job! You\'ve mastered all questions in this set.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              provider.toggleHideMastered();
+                            },
+                            icon: const Icon(Icons.visibility),
+                            label: const Text('Show Mastered Cards'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return Container(
+                  color: Colors.grey[50],
+                  padding: const EdgeInsets.all(16),
+                  child: const Center(
+                    child: FlashcardWidget(),
+                  ),
+                );
+              },
             ),
           ),
 

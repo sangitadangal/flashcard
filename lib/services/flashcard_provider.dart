@@ -11,6 +11,7 @@ class FlashcardProvider extends ChangeNotifier {
   bool _isShowingAnswer = false;
   Set<Difficulty> _selectedDifficulties = {};
   Set<String> _selectedCategories = {};
+  bool _hideMastered = false;
 
   FlashcardProvider() {
     _loadQuestions();
@@ -21,6 +22,8 @@ class FlashcardProvider extends ChangeNotifier {
     _allQuestions = List.from(questions);
     _filteredQuestions = List.from(_allQuestions);
     _loadMasteredStatus(); // Load mastered status from storage (async)
+    _loadFilterState(); // Load filter state
+    _loadLastQuestionIndex(); // Load last question index
   }
 
   // Load mastered status from storage and apply to current questions
@@ -68,6 +71,90 @@ class FlashcardProvider extends ChangeNotifier {
     }
   }
 
+  // Load last question ID from storage and find its index
+  Future<void> _loadLastQuestionIndex() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? savedQuestionId = prefs.getInt('last_question_id');
+
+      if (savedQuestionId != null) {
+        // Find the question in filtered questions
+        final index = _filteredQuestions.indexWhere((q) => q.id == savedQuestionId);
+        if (index != -1) {
+          _currentIndex = index;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading last question index: $e');
+    }
+  }
+
+  // Save current question ID to storage
+  Future<void> _saveQuestionIndex() async {
+    try {
+      if (currentQuestion != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('last_question_id', currentQuestion!.id);
+      }
+    } catch (e) {
+      debugPrint('Error saving question index: $e');
+    }
+  }
+
+  // Load filter state from storage
+  Future<void> _loadFilterState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Load selected difficulties
+      final List<String>? difficulties = prefs.getStringList('selected_difficulties');
+      if (difficulties != null) {
+        _selectedDifficulties = difficulties
+            .map((d) => Difficulty.values.firstWhere((diff) => diff.toString() == d))
+            .toSet();
+      }
+
+      // Load selected categories
+      final List<String>? categories = prefs.getStringList('selected_categories');
+      if (categories != null) {
+        _selectedCategories = categories.toSet();
+      }
+
+      // Load hide mastered state
+      final bool? hideMastered = prefs.getBool('hide_mastered');
+      if (hideMastered != null) {
+        _hideMastered = hideMastered;
+      }
+
+      // Apply filters after loading
+      _applyFilters();
+    } catch (e) {
+      debugPrint('Error loading filter state: $e');
+    }
+  }
+
+  // Save filter state to storage
+  Future<void> _saveFilterState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Save selected difficulties
+      await prefs.setStringList(
+        'selected_difficulties',
+        _selectedDifficulties.map((d) => d.toString()).toList(),
+      );
+
+      // Save selected categories
+      await prefs.setStringList('selected_categories', _selectedCategories.toList());
+
+      // Save hide mastered state
+      await prefs.setBool('hide_mastered', _hideMastered);
+    } catch (e) {
+      debugPrint('Error saving filter state: $e');
+    }
+  }
+
   // Getters
   List<LeetCodeQuestion> get allQuestions => _allQuestions;
   List<LeetCodeQuestion> get filteredQuestions => _filteredQuestions;
@@ -75,6 +162,7 @@ class FlashcardProvider extends ChangeNotifier {
   bool get isShowingAnswer => _isShowingAnswer;
   Set<Difficulty> get selectedDifficulties => _selectedDifficulties;
   Set<String> get selectedCategories => _selectedCategories;
+  bool get hideMastered => _hideMastered;
 
   LeetCodeQuestion? get currentQuestion {
     if (_filteredQuestions.isNotEmpty && _currentIndex < _filteredQuestions.length) {
@@ -84,7 +172,7 @@ class FlashcardProvider extends ChangeNotifier {
   }
 
   bool get isFiltered =>
-      _selectedDifficulties.isNotEmpty || _selectedCategories.isNotEmpty;
+      _selectedDifficulties.isNotEmpty || _selectedCategories.isNotEmpty || _hideMastered;
 
   int get totalCount => _allQuestions.length;
   int get filteredCount => _filteredQuestions.length;
@@ -189,6 +277,7 @@ class FlashcardProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    _saveQuestionIndex(); // Save position for resume
   }
 
   void previousQuestion() {
@@ -201,6 +290,7 @@ class FlashcardProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    _saveQuestionIndex(); // Save position for resume
   }
 
   void flipCard() {
@@ -216,6 +306,7 @@ class FlashcardProvider extends ChangeNotifier {
       _selectedDifficulties.add(difficulty);
     }
     _applyFilters();
+    _saveFilterState(); // Save filter state
   }
 
   void toggleCategory(String category) {
@@ -225,12 +316,21 @@ class FlashcardProvider extends ChangeNotifier {
       _selectedCategories.add(category);
     }
     _applyFilters();
+    _saveFilterState(); // Save filter state
+  }
+
+  void toggleHideMastered() {
+    _hideMastered = !_hideMastered;
+    _applyFilters();
+    _saveFilterState(); // Save filter state
   }
 
   void clearFilters() {
     _selectedDifficulties.clear();
     _selectedCategories.clear();
+    _hideMastered = false;
     _applyFilters();
+    _saveFilterState(); // Save filter state
   }
 
   void _applyFilters() {
@@ -250,7 +350,17 @@ class FlashcardProvider extends ChangeNotifier {
           .toList();
     }
 
-    // Reset index if out of bounds
+    // Filter out mastered questions if hide mastered is enabled
+    if (_hideMastered) {
+      _filteredQuestions = _filteredQuestions
+          .where((q) => !q.isMastered)
+          .toList();
+    }
+
+    // Try to restore last question position
+    _loadLastQuestionIndex();
+
+    // Reset index if out of bounds or if question not found
     if (_filteredQuestions.isNotEmpty && _currentIndex >= _filteredQuestions.length) {
       _currentIndex = 0;
     } else if (_filteredQuestions.isEmpty) {
