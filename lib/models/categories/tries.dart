@@ -173,7 +173,7 @@ Constraints:
     def search(self, word):
         import re
         pattern = word.replace('.', '.')
-        regex = re.compile(f'^{pattern}$')
+        regex = re.compile('^' + pattern + 'END')
 
         for w in self.words:
             if regex.match(w):

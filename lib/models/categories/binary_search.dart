@@ -455,9 +455,9 @@ Constraints:
     question: """Design a time-based key-value data structure that can store multiple values for the same key at different time stamps and retrieve the key's value at a certain timestamp.
 
 Implement the TimeMap class:
-• TimeMap() Initializes the object of the data structure.
-• void set(String key, String value, int timestamp) Stores the key key with the value value at the given time timestamp.
-• String get(String key, int timestamp) Returns a value such that set was called previously, with timestamp_prev <= timestamp. If there are multiple such values, it returns the value associated with the largest timestamp_prev. If there are no values, it returns "".
+- TimeMap() Initializes the object of the data structure.
+- void set(String key, String value, int timestamp) Stores the key key with the value value at the given time timestamp.
+- String get(String key, int timestamp) Returns a value such that set was called previously, with timestamp_prev <= timestamp. If there are multiple such values, it returns the value associated with the largest timestamp_prev. If there are no values, it returns "".
 
 Example 1:
 Input
@@ -476,11 +476,11 @@ timeMap.get("foo", 4);         // return "bar2"
 timeMap.get("foo", 5);         // return "bar2"
 
 Constraints:
-• 1 <= key.length, value.length <= 100
-• key and value consist of lowercase English letters and digits.
-• 1 <= timestamp <= 10⁷
-• All the timestamps timestamp of set are strictly increasing.
-• At most 2 * 10⁵ calls will be made to set and get.""",
+- 1 <= key.length, value.length <= 100
+- key and value consist of lowercase English letters and digits.
+- 1 <= timestamp <= 10^7
+- All the timestamps timestamp of set are strictly increasing.
+- At most 2 * 10^5 calls will be made to set and get.""",
     bruteForce: Solution(
       code: """class TimeMap:
     def __init__(self):
@@ -502,8 +502,7 @@ Constraints:
             if values[i][0] <= timestamp:
                 return values[i][1]
 
-        return \"""\"
-
+        return \"\"""",
       timeComplexity: "O(1) for set, O(n) for get",
       spaceComplexity: "O(n)",
       explanation: "Store list of (timestamp, value) pairs for each key. For set, append to list. For get, linear search backwards to find largest timestamp <= given timestamp.",
@@ -594,12 +593,12 @@ Output: 2.50000
 Explanation: merged array = [1,2,3,4] and median is (2 + 3) / 2 = 2.5.
 
 Constraints:
-• nums1.length == m
-• nums2.length == n
-• 0 <= m <= 1000
-• 0 <= n <= 1000
-• 1 <= m + n <= 2000
-• -10⁶ <= nums1[i], nums2[i] <= 10⁶""",
+- nums1.length == m
+- nums2.length == n
+- 0 <= m <= 1000
+- 0 <= n <= 1000
+- 1 <= m + n <= 2000
+- -10^6 <= nums1[i], nums2[i] <= 10^6""",
     bruteForce: Solution(
       code: """def findMedianSortedArrays(nums1, nums2):
     # Merge both arrays

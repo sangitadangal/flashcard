@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/leetcode_question.dart';
-import '../models/sample_questions.dart';
+import '../models/all_questions.dart';
 
 class FlashcardProvider extends ChangeNotifier {
   List<LeetCodeQuestion> _allQuestions = [];
@@ -53,14 +53,22 @@ class FlashcardProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? questionsJson = prefs.getString('leetcode_questions');
+      final int? dataVersion = prefs.getInt('data_version');
 
-      if (questionsJson != null) {
+      // Current data version - increment when dataset changes
+      const int currentVersion = 2; // Changed to 2 for 150 questions
+
+      // Load from storage only if version matches
+      if (questionsJson != null && dataVersion == currentVersion) {
         final List<dynamic> decoded = json.decode(questionsJson);
         _allQuestions = decoded
             .map((item) => LeetCodeQuestion.fromJson(item))
             .toList();
       } else {
-        _allQuestions = List.from(sampleQuestions);
+        // Use fresh dataset if no cached data or version mismatch
+        _allQuestions = List.from(allNeetCode150Questions);
+        // Update version number
+        await prefs.setInt('data_version', currentVersion);
       }
 
       _filteredQuestions = List.from(_allQuestions);
@@ -68,7 +76,7 @@ class FlashcardProvider extends ChangeNotifier {
       await _saveQuestions();
     } catch (e) {
       debugPrint('Error loading questions: $e');
-      _allQuestions = List.from(sampleQuestions);
+      _allQuestions = List.from(allNeetCode150Questions);
       _filteredQuestions = List.from(_allQuestions);
       notifyListeners();
     }

@@ -471,7 +471,7 @@ Constraints:
     def serialize(node):
         if not node:
             return "#"
-        return f"^{node.val} {serialize(node.left)} {serialize(node.right)}$"
+        return "^" + str(node.val) + " " + serialize(node.left) + " " + serialize(node.right) + "END"
 
     root_str = serialize(root)
     sub_str = serialize(subRoot)
@@ -482,8 +482,8 @@ Constraints:
       explanation: "Serialize both trees to strings with markers for structure, then check if subRoot's string is a substring of root's string. Simple but uses extra space.",
       steps: [
         "Define serialize function to convert tree to unique string",
-        "  - Use special markers: ^ for start, $ for end, # for null",
-        "  - Format: ^value left right$",
+        "  Use special markers: ^ for start, dollar for end, # for null",
+        "  Format: ^value left right dollar",
         "Serialize main tree to root_str",
         "Serialize subtree to sub_str",
         "Check if sub_str is substring of root_str",

@@ -705,7 +705,7 @@ def addStrings(num1, num2):
 
     # Convert to string, skip leading zeros
     result_str = "".join(map(str, result))
-    return result_str.lstrip("0") or "0"""",
+    return result_str.lstrip("0") or "0\"""",
       timeComplexity: "O(m * n)",
       spaceComplexity: "O(m + n)",
       explanation: "Direct position-based multiplication. Use array to store result digits. For digits at positions i and j, their product contributes to positions i+j and i+j+1.",
