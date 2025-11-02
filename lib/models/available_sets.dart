@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'flashcard_set.dart';
 import 'all_questions.dart';
+import 'categories/data_structures.dart';
 
 // Available flashcard sets
 final List<FlashcardSet> availableFlashcardSets = [
@@ -15,6 +16,18 @@ final List<FlashcardSet> availableFlashcardSets = [
     category: 'Coding Interview',
     isCustom: false,
     createdAt: DateTime(2025, 10, 31),
+  ),
+
+  FlashcardSet(
+    id: 'data_structures',
+    title: 'Data Structures Fundamentals',
+    description: 'Complete guide to data structures and algorithms with Python implementations. Covers arrays, stacks, queues, linked lists, trees, heaps, graphs, tries, hash maps, union-find, segment trees, Fenwick trees, AVL trees, deques, BFS, and DFS.',
+    iconEmoji: '🗂️',
+    totalQuestions: 17,
+    questions: dataStructuresQuestions,
+    category: 'Data Structures',
+    isCustom: false,
+    createdAt: DateTime(2025, 11, 2),
   ),
 
   // Placeholder for future sets - will be added later
