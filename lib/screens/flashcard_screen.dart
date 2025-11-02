@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/flashcard_set.dart';
 import '../services/flashcard_provider.dart';
+import '../services/theme_provider.dart';
 import '../widgets/flashcard_widget.dart';
 import 'filter_screen.dart';
 import 'progress_screen.dart';
@@ -91,6 +92,20 @@ class _FlashcardScreenContent extends StatelessWidget {
               );
             },
           ),
+          // Theme toggle
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
         ],
       ),
       body: Column(
@@ -101,7 +116,7 @@ class _FlashcardScreenContent extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -117,17 +132,18 @@ class _FlashcardScreenContent extends StatelessWidget {
                       children: [
                         Text(
                           'Progress: ${provider.masteredCount} / ${provider.totalCount}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Text(
                           '${(provider.progress * 100).toStringAsFixed(0)}%',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ],
@@ -138,8 +154,10 @@ class _FlashcardScreenContent extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: provider.progress,
                         minHeight: 8,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -151,10 +169,14 @@ class _FlashcardScreenContent extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: provider.hideMastered ? Colors.blue : Colors.grey[200],
+                          color: provider.hideMastered
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: provider.hideMastered ? Colors.blue : Colors.grey[400]!,
+                            color: provider.hideMastered
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outline,
                             width: 1,
                           ),
                         ),
@@ -164,7 +186,9 @@ class _FlashcardScreenContent extends StatelessWidget {
                             Icon(
                               provider.hideMastered ? Icons.visibility_off : Icons.visibility,
                               size: 16,
-                              color: provider.hideMastered ? Colors.white : Colors.grey[700],
+                              color: provider.hideMastered
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -172,16 +196,18 @@ class _FlashcardScreenContent extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: provider.hideMastered ? Colors.white : Colors.grey[700],
+                                color: provider.hideMastered
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(width: 4),
                             if (provider.hideMastered)
                               Text(
                                 '(${provider.filteredCount})',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white70,
+                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
                                 ),
                               ),
                           ],
@@ -201,13 +227,13 @@ class _FlashcardScreenContent extends StatelessWidget {
                 // Show empty state if no questions available
                 if (provider.filteredCount == 0) {
                   return Container(
-                    color: Colors.grey[50],
+                    color: Theme.of(context).colorScheme.surface,
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.celebration,
                             size: 80,
                             color: Colors.amber,
@@ -218,7 +244,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -227,7 +253,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey[600],
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -251,7 +277,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                 }
 
                 return Container(
-                  color: Colors.grey[50],
+                  color: Theme.of(context).colorScheme.surface,
                   padding: const EdgeInsets.all(16),
                   child: const Center(
                     child: FlashcardWidget(),
@@ -267,7 +293,7 @@ class _FlashcardScreenContent extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -284,17 +310,17 @@ class _FlashcardScreenContent extends StatelessWidget {
                         if (provider.currentQuestion != null)
                           Text(
                             'Question ${provider.currentIndex + 1} of ${provider.filteredCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         if (provider.isFiltered)
                           Text(
                             'Filtered from ${provider.totalCount} total',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                       ],
@@ -309,7 +335,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.chevron_left_rounded),
                           iconSize: 44,
-                          color: Colors.blue,
+                          color: Theme.of(context).colorScheme.primary,
                           onPressed: provider.previousQuestion,
                         ),
 
@@ -334,7 +360,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                                   : 'Not Mastered',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -344,7 +370,7 @@ class _FlashcardScreenContent extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.chevron_right_rounded),
                           iconSize: 44,
-                          color: Colors.blue,
+                          color: Theme.of(context).colorScheme.primary,
                           onPressed: provider.nextQuestion,
                         ),
                       ],
@@ -356,13 +382,17 @@ class _FlashcardScreenContent extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.touch_app, size: 16, color: Colors.grey[600]),
+                        Icon(
+                          Icons.touch_app,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Tap card to flip • Swipe to navigate',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/flashcard_set.dart';
 import '../models/available_sets.dart';
+import '../services/theme_provider.dart';
 import 'flashcard_screen.dart';
 
 class SetsHomeScreen extends StatefulWidget {
@@ -36,6 +38,21 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
       appBar: AppBar(
         title: const Text('Flashcard Sets'),
         elevation: 0,
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -44,10 +61,22 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              gradient: LinearGradient(
+                colors: Theme.of(context).brightness == Brightness.dark
+                    ? [
+                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                      ]
+                    : [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -56,12 +85,14 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Choose Your Study Path',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -69,7 +100,9 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                   'Select a flashcard set to begin studying',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -145,7 +178,7 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
@@ -175,14 +208,14 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             set.category,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue[700],
+                              color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -205,7 +238,7 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                 set.description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[700],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),
@@ -243,7 +276,7 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                           'Progress',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -251,7 +284,7 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                           '${(set.progress * 100).toStringAsFixed(0)}%',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -262,7 +295,7 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: set.progress,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Colors.green,
                         ),
@@ -280,19 +313,23 @@ class _SetsHomeScreenState extends State<SetsHomeScreen> {
   }
 
   Widget _buildStatItem(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
+    return Builder(
+      builder: (context) {
+        return Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

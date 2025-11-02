@@ -52,10 +52,15 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
         final question = provider.currentQuestion;
 
         if (question == null) {
-          return const Center(
-            child: Text(
-              'No questions available',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+          return Center(
+            child: Builder(
+              builder: (context) => Text(
+                'No questions available',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           );
         }
@@ -139,8 +144,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                 ),
                 child: Text(
                   question.difficulty.toString().split('.').last.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -148,12 +153,14 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
               ),
               const SizedBox(height: 16),
               // Category
-              Text(
-                question.category,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+              Builder(
+                builder: (context) => Text(
+                  question.category,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -259,38 +266,46 @@ class _SolutionTabViewState extends State<SolutionTabView> {
           const SizedBox(height: 20),
 
           // View Code button
-          ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _showCode = !_showCode;
-              });
-            },
-            icon: Icon(_showCode ? Icons.keyboard_arrow_up : Icons.visibility),
-            label: Text(_showCode ? 'Hide Code' : 'View Code'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _selectedTab == 0 ? Colors.orange : Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          Builder(
+            builder: (context) => ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _showCode = !_showCode;
+                });
+              },
+              icon: Icon(_showCode ? Icons.keyboard_arrow_up : Icons.visibility),
+              label: Text(_showCode ? 'Hide Code' : 'View Code'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _selectedTab == 0 ? Colors.orange : Colors.green,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
             ),
           ),
 
           // Code section (collapsible)
           if (_showCode) ...[
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Text(
-                  solution.code,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    color: Colors.greenAccent,
+            Builder(
+              builder: (context) => Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : Colors.grey[900],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    solution.code,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 14,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.greenAccent,
+                    ),
                   ),
                 ),
               ),
@@ -321,27 +336,35 @@ class _SolutionTabViewState extends State<SolutionTabView> {
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Text(
-                        '${entry.key + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                      child: Builder(
+                        builder: (context) => Text(
+                          '${entry.key + 1}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      entry.value,
-                      style: const TextStyle(fontSize: 14, height: 1.5),
+                    child: Builder(
+                      builder: (context) => Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -349,26 +372,30 @@ class _SolutionTabViewState extends State<SolutionTabView> {
 
   Widget _buildTabButton(String label, int index, Color color) {
     final isSelected = _selectedTab == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTab = index;
-          _showCode = false;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey[700],
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedTab = index;
+            _showCode = false;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color : Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
           ),
         ),
@@ -377,67 +404,71 @@ class _SolutionTabViewState extends State<SolutionTabView> {
   }
 
   Widget _buildComplexityInfo(Solution solution) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Time',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  solution.timeComplexity,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Colors.grey[300],
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 12),
+    return Builder(
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Space',
+                  Text(
+                    'Time',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    solution.spaceComplexity,
-                    style: const TextStyle(
+                    solution.timeComplexity,
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            Container(
+              width: 1,
+              height: 30,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Space',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      solution.spaceComplexity,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
