@@ -12,6 +12,7 @@ class FlashcardProvider extends ChangeNotifier {
   Set<Difficulty> _selectedDifficulties = {};
   Set<String> _selectedCategories = {};
   bool _hideMastered = false;
+  bool _showOnlyMastered = false;
 
   FlashcardProvider() {
     _loadQuestions();
@@ -127,6 +128,12 @@ class FlashcardProvider extends ChangeNotifier {
         _hideMastered = hideMastered;
       }
 
+      // Load show only mastered state
+      final bool? showOnlyMastered = prefs.getBool('show_only_mastered');
+      if (showOnlyMastered != null) {
+        _showOnlyMastered = showOnlyMastered;
+      }
+
       // Apply filters after loading
       _applyFilters();
     } catch (e) {
@@ -150,6 +157,9 @@ class FlashcardProvider extends ChangeNotifier {
 
       // Save hide mastered state
       await prefs.setBool('hide_mastered', _hideMastered);
+
+      // Save show only mastered state
+      await prefs.setBool('show_only_mastered', _showOnlyMastered);
     } catch (e) {
       debugPrint('Error saving filter state: $e');
     }
@@ -163,6 +173,7 @@ class FlashcardProvider extends ChangeNotifier {
   Set<Difficulty> get selectedDifficulties => _selectedDifficulties;
   Set<String> get selectedCategories => _selectedCategories;
   bool get hideMastered => _hideMastered;
+  bool get showOnlyMastered => _showOnlyMastered;
 
   LeetCodeQuestion? get currentQuestion {
     if (_filteredQuestions.isNotEmpty && _currentIndex < _filteredQuestions.length) {
@@ -172,7 +183,7 @@ class FlashcardProvider extends ChangeNotifier {
   }
 
   bool get isFiltered =>
-      _selectedDifficulties.isNotEmpty || _selectedCategories.isNotEmpty || _hideMastered;
+      _selectedDifficulties.isNotEmpty || _selectedCategories.isNotEmpty || _hideMastered || _showOnlyMastered;
 
   int get totalCount => _allQuestions.length;
   int get filteredCount => _filteredQuestions.length;
@@ -321,6 +332,20 @@ class FlashcardProvider extends ChangeNotifier {
 
   void toggleHideMastered() {
     _hideMastered = !_hideMastered;
+    // Disable show only mastered when hiding mastered
+    if (_hideMastered) {
+      _showOnlyMastered = false;
+    }
+    _applyFilters();
+    _saveFilterState(); // Save filter state
+  }
+
+  void toggleShowOnlyMastered() {
+    _showOnlyMastered = !_showOnlyMastered;
+    // Disable hide mastered when showing only mastered
+    if (_showOnlyMastered) {
+      _hideMastered = false;
+    }
     _applyFilters();
     _saveFilterState(); // Save filter state
   }
@@ -329,6 +354,7 @@ class FlashcardProvider extends ChangeNotifier {
     _selectedDifficulties.clear();
     _selectedCategories.clear();
     _hideMastered = false;
+    _showOnlyMastered = false;
     _applyFilters();
     _saveFilterState(); // Save filter state
   }
@@ -354,6 +380,13 @@ class FlashcardProvider extends ChangeNotifier {
     if (_hideMastered) {
       _filteredQuestions = _filteredQuestions
           .where((q) => !q.isMastered)
+          .toList();
+    }
+
+    // Show only mastered questions if enabled
+    if (_showOnlyMastered) {
+      _filteredQuestions = _filteredQuestions
+          .where((q) => q.isMastered)
           .toList();
     }
 

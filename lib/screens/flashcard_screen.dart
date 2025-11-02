@@ -161,58 +161,100 @@ class _FlashcardScreenContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Hide Mastered Toggle
-                    GestureDetector(
-                      onTap: () {
-                        provider.toggleHideMastered();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: provider.hideMastered
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: provider.hideMastered
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.outline,
-                            width: 1,
+                    // Filter toggles
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Hide Mastered Toggle
+                        GestureDetector(
+                          onTap: () {
+                            provider.toggleHideMastered();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: provider.hideMastered
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: provider.hideMastered
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.outline,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  provider.hideMastered ? Icons.visibility_off : Icons.visibility,
+                                  size: 16,
+                                  color: provider.hideMastered
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurface,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  provider.hideMastered ? 'Hide Mastered' : 'Show All',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: provider.hideMastered
+                                        ? Theme.of(context).colorScheme.onPrimary
+                                        : Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              provider.hideMastered ? Icons.visibility_off : Icons.visibility,
-                              size: 16,
-                              color: provider.hideMastered
-                                  ? Theme.of(context).colorScheme.onPrimary
-                                  : Theme.of(context).colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              provider.hideMastered ? 'Mastered Hidden' : 'Show All',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: provider.hideMastered
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : Theme.of(context).colorScheme.onSurface,
+                        const SizedBox(width: 8),
+                        // Show Only Mastered Toggle
+                        GestureDetector(
+                          onTap: () {
+                            provider.toggleShowOnlyMastered();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: provider.showOnlyMastered
+                                  ? Colors.amber
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: provider.showOnlyMastered
+                                    ? Colors.amber
+                                    : Theme.of(context).colorScheme.outline,
+                                width: 1,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            if (provider.hideMastered)
-                              Text(
-                                '(${provider.filteredCount})',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: provider.showOnlyMastered
+                                      ? Colors.grey[900]
+                                      : Theme.of(context).colorScheme.onSurface,
                                 ),
-                              ),
-                          ],
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Review Mastered',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: provider.showOnlyMastered
+                                        ? Colors.grey[900]
+                                        : Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -233,14 +275,16 @@ class _FlashcardScreenContent extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.celebration,
+                          Icon(
+                            provider.showOnlyMastered ? Icons.info_outline : Icons.celebration,
                             size: 80,
-                            color: Colors.amber,
+                            color: provider.showOnlyMastered ? Colors.blue : Colors.amber,
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'All Questions Mastered!',
+                            provider.showOnlyMastered
+                                ? 'No Mastered Questions Yet'
+                                : 'All Questions Mastered!',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -249,7 +293,9 @@ class _FlashcardScreenContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Great job! You\'ve mastered all questions in this set.',
+                            provider.showOnlyMastered
+                                ? 'Mark some questions as mastered to review them here.'
+                                : 'Great job! You\'ve mastered all questions in this set.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -259,10 +305,18 @@ class _FlashcardScreenContent extends StatelessWidget {
                           const SizedBox(height: 24),
                           ElevatedButton.icon(
                             onPressed: () {
-                              provider.toggleHideMastered();
+                              if (provider.showOnlyMastered) {
+                                provider.toggleShowOnlyMastered();
+                              } else {
+                                provider.toggleHideMastered();
+                              }
                             },
-                            icon: const Icon(Icons.visibility),
-                            label: const Text('Show Mastered Cards'),
+                            icon: Icon(
+                              provider.showOnlyMastered ? Icons.apps : Icons.visibility,
+                            ),
+                            label: Text(
+                              provider.showOnlyMastered ? 'Show All Cards' : 'Show Mastered Cards',
+                            ),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
